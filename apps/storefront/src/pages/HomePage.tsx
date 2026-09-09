@@ -11,13 +11,17 @@ const reveal = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0
 export function HomePage() {
   const { data: liveProducts } = useQuery({ queryKey: ['products', 'home'], queryFn: () => commerceProvider.listProducts({ sort: 'featured' }) });
   const catalogProducts = liveProducts?.length ? liveProducts : products;
+  const heroProduct = catalogProducts[0] ?? products[0];
+  const editorialProduct = catalogProducts[1] ?? products[1] ?? heroProduct;
+  const heroImage = heroProduct?.images[0]?.url ?? '';
+  const editorialImage = editorialProduct?.images[1]?.url ?? editorialProduct?.images[0]?.url ?? heroImage;
   const featured = catalogProducts.filter((product) => product.featured).slice(0, 4);
   const arrivals = catalogProducts.filter((product) => product.isNew).slice(0, 4);
 
   return (
     <main>
       <section className="hero">
-        <div className="hero__media"><img src={catalogProducts[0].images[0].url} alt="Nova Carry Backpack prepared for a day in motion" /></div>
+        <div className="hero__media"><img src={heroImage} alt="Nova Carry Backpack prepared for a day in motion" /></div>
         <div className="hero__shade" />
         <div className="hero__content page-shell">
           <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }}>
@@ -56,7 +60,7 @@ export function HomePage() {
       </section>
 
       <section className="editorial page-shell">
-        <motion.div {...reveal} className="editorial__image"><img src={catalogProducts[1].images[1]?.url ?? catalogProducts[1].images[0].url} alt="Aero Wireless Headphones in a quiet listening space" /><span className="editorial__label">Edition N° 04</span></motion.div>
+        <motion.div {...reveal} className="editorial__image"><img src={editorialImage} alt="Aero Wireless Headphones in a quiet listening space" /><span className="editorial__label">Edition N° 04</span></motion.div>
         <motion.div {...reveal} className="editorial__content"><p className="section-index">A quieter kind of focus</p><h2>Make space<br />to hear more.</h2><p>Aero creates the rarest luxury: room to think. Adaptive silence, precise sound, and a form made comfortable for the long listen.</p><Link to="/products/aero-wireless-headphones" className="button-link button-link--dark">Discover Aero <MoveRight size={18} /></Link><div className="editorial__note"><span>32 hr</span><p>Continuous listening<br />with fast charge</p></div></motion.div>
       </section>
 
