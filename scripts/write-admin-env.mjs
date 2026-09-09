@@ -13,7 +13,7 @@ if (existsSync(envPath)) {
   }
 }
 
-const url = values.get('NG_APP_SUPABASE_URL') ?? 'http://127.0.0.1:55321';
-const key = values.get('NG_APP_SUPABASE_ANON_KEY') ?? 'local-development-placeholder';
+const url = process.env.NG_APP_SUPABASE_URL ?? values.get('NG_APP_SUPABASE_URL') ?? 'http://127.0.0.1:55321';
+const key = process.env.NG_APP_SUPABASE_ANON_KEY ?? values.get('NG_APP_SUPABASE_ANON_KEY') ?? 'local-development-placeholder';
 const source = `// Generated from .env.local. Do not commit this file.\nexport const environment = {\n  production: false,\n  supabaseUrl: ${JSON.stringify(url)},\n  supabaseAnonKey: ${JSON.stringify(key)},\n};\n`;
 writeFileSync(outputPath, source, 'utf8');

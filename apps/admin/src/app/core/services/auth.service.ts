@@ -7,7 +7,7 @@ export interface AdminIdentity { id: string; email: string; fullName: string; av
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   readonly isConfigured = !environment.supabaseAnonKey.includes('placeholder');
-  readonly user = signal<AdminIdentity | null>(this.isConfigured ? null : this.readDemoSession());
+  readonly user = signal<AdminIdentity | null>(null);
   readonly loading = signal(this.isConfigured);
   readonly client: SupabaseClient = createClient(environment.supabaseUrl, environment.supabaseAnonKey, { auth: { persistSession: true } });
 
@@ -16,11 +16,6 @@ export class AuthService {
       void this.initialize();
       this.client.auth.onAuthStateChange((_event, session) => void this.acceptUser(session?.user ?? null));
     }
-  }
-
-  private readDemoSession(): AdminIdentity | null {
-    try { return JSON.parse(localStorage.getItem('nova-admin-session') ?? 'null') as AdminIdentity | null; }
-    catch { return null; }
   }
 
   async initialize() {
@@ -39,14 +34,7 @@ export class AuthService {
   }
 
   async signIn(email: string, password: string) {
-    if (!this.isConfigured) {
-      await new Promise((resolve) => setTimeout(resolve, 450));
-      if (email.toLowerCase() !== 'admin@novasupply.local' || password !== 'NovaDemo!2026') throw new Error('Use the local demo credentials shown below.');
-      const demo = { id: 'demo-admin', email, fullName: 'Mara Reyes' };
-      localStorage.setItem('nova-admin-session', JSON.stringify(demo));
-      this.user.set(demo);
-      return;
-    }
+    if (!this.isConfigured) throw new Error('Admin authentication is not configured. Add the Supabase environment variables and redeploy.');
     const { data, error } = await this.client.auth.signInWithPassword({ email, password });
     if (error) throw error;
     await this.acceptUser(data.user);
@@ -55,7 +43,6 @@ export class AuthService {
 
   async signOut() {
     if (this.isConfigured) await this.client.auth.signOut();
-    localStorage.removeItem('nova-admin-session');
     this.user.set(null);
   }
 }
