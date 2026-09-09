@@ -5,16 +5,25 @@ import type { Product } from '@nova/shared-types';
 import { calculateDiscountPercentage } from '@nova/shared-utils';
 import { useCommerceStore } from '@/stores/commerce-store';
 import { toast } from 'sonner';
+import { products as fallbackProducts } from '@/data/catalog';
 
 export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const discount = calculateDiscountPercentage(product.price, product.compareAtPrice);
   const { addItem, toggleWishlist, wishlistIds } = useCommerceStore();
   const wished = wishlistIds.includes(product.id);
+  const fallbackImage = fallbackProducts[0]?.images[0];
+  const primaryImage = product.images[0] ?? fallbackImage;
+  const alternateImage = product.images[1] ?? primaryImage;
+  const useFallbackImage = (image: HTMLImageElement) => {
+    if (!fallbackImage || image.src === fallbackImage.url) return;
+    image.onerror = null;
+    image.src = fallbackImage.url;
+  };
   return (
     <article className="product-card">
       <Link to={`/products/${product.slug}`} className="product-card__image-wrap" aria-label={`View ${product.name}`}>
-        <img className="product-card__image" src={product.images[0].url} alt={product.images[0].alt} loading={priority ? 'eager' : 'lazy'} />
-        <img className="product-card__image product-card__image--alternate" src={product.images[1].url} alt="" loading="lazy" />
+        <img className="product-card__image" src={primaryImage?.url} alt={primaryImage?.alt ?? product.name} loading={priority ? 'eager' : 'lazy'} onError={({ currentTarget }) => useFallbackImage(currentTarget)} />
+        <img className="product-card__image product-card__image--alternate" src={alternateImage?.url} alt="" loading="lazy" onError={({ currentTarget }) => useFallbackImage(currentTarget)} />
         <div className="product-card__badges">
           {product.isNew && <span className="badge badge--light">New</span>}
           {discount > 0 && <span className="badge badge--dark">Save {discount}%</span>}
